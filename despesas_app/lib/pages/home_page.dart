@@ -23,7 +23,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(title: Text('Minhas Despesas'), centerTitle: true),
       body: Column(
         children: [
-          ResumoCardWidget(saldo: _resumo.saldo),
+          ResumoCardWidget(entrada: _resumo.entrada, saida: _resumo.saida),
           Expanded(
             child: ListView.builder(
               itemCount: _despesas.length,

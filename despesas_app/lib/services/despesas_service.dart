@@ -27,6 +27,6 @@ class DespesasService {
         despesas += d.valor;
       }
     }
-    return ResumoFinanceiro(totalReceitas: receitas, totalDespesas: despesas);
+    return ResumoFinanceiro(entrada: receitas, saida: despesas);
   }
 }

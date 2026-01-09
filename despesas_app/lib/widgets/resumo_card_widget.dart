@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 
 class ResumoCardWidget extends StatelessWidget {
-  final double saldo;
-  const ResumoCardWidget({super.key, required this.saldo});
+  final double entrada;
+  final double saida;
+  const ResumoCardWidget({
+    super.key,
+    required this.entrada,
+    required this.saida,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -12,17 +17,50 @@ class ResumoCardWidget extends StatelessWidget {
       elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Saldo Atual',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.arrow_upward, color: Colors.green, size: 18),
+                    SizedBox(width: 4),
+                    Text('Entrada', style: TextStyle(color: Colors.green)),
+                  ],
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'R\$ ${entrada.toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              'R\$ ${saldo.toStringAsFixed(2)}',
-              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.arrow_downward, color: Colors.red, size: 18),
+                    SizedBox(width: 4),
+                    Text('Saída', style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'R\$ ${saida.toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

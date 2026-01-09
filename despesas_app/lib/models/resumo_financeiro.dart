@@ -1,25 +1,25 @@
 import 'package:despesas_app/models/despesa.dart';
 
 class ResumoFinanceiro {
-  final double totalReceitas;
-  final double totalDespesas;
+  final double entrada;
+  final double saida;
 
-  ResumoFinanceiro({required this.totalReceitas, required this.totalDespesas});
+  ResumoFinanceiro({required this.entrada, required this.saida});
 
-  double get saldo => totalReceitas - totalDespesas;
+  double get saldo => entrada - saida;
 
   static ResumoFinanceiro fromDespesas(List<Despesa> despesas) {
-    double receitas = 0;
-    double gastos = 0;
+    double totalEntrada = 0;
+    double totalSaida = 0;
 
     for (var d in despesas) {
       if (d.tipo == TipoTransacao.receita) {
-        receitas += d.valor;
+        totalEntrada += d.valor;
       } else {
-        gastos += d.valor;
+        totalSaida += d.valor;
       }
     }
 
-    return ResumoFinanceiro(totalReceitas: receitas, totalDespesas: gastos);
+    return ResumoFinanceiro(entrada: totalEntrada, saida: totalSaida);
   }
 }
