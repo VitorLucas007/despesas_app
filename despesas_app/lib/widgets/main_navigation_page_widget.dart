@@ -1,3 +1,4 @@
+import 'package:despesas_app/models/despesa.dart';
 import 'package:despesas_app/pages/add_despesa_page.dart';
 import 'package:despesas_app/pages/estatistica_page.dart';
 import 'package:despesas_app/pages/historico_page.dart';
@@ -15,24 +16,26 @@ class MainNavigationPageWidget extends StatefulWidget {
 class _MainNavigationPageWidgetState extends State<MainNavigationPageWidget> {
   int _currentIndex = 0;
 
-  late final List<Widget> _pages;
+  final List<Despesa> _despesas = [];
 
-  @override
-  void initState() {
-    super.initState();
-
-    _pages = const [
-      HomePage(),
-      HistoricoPage(),
-      AddDespesaPage(),
-      EstatisticaPage(),
-    ];
+  void _adicionarDespesa(Despesa despesa) {
+    setState(() {
+      _despesas.add(despesa);
+      _currentIndex = 0; // volta pra home
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final pages = [
+      HomePage(despesas: _despesas),
+      HistoricoPage(despesas: _despesas),
+      AddDespesaPage(onSalvar: _adicionarDespesa),
+      EstatisticaPage(despesas: _despesas),
+    ];
+
     return Scaffold(
-      body: _pages[_currentIndex],
+      body: pages[_currentIndex],
 
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
