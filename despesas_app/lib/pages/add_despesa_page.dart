@@ -1,9 +1,11 @@
 import 'package:despesas_app/models/categoria.dart';
 import 'package:despesas_app/models/despesa.dart';
+import 'package:despesas_app/utils/categorias_fixas.dart';
 import 'package:flutter/material.dart';
 
 class AddDespesaPage extends StatefulWidget {
-  const AddDespesaPage({super.key});
+  final Function(Despesa) onSalvar;
+  const AddDespesaPage({super.key, required this.onSalvar});
 
   @override
   State<AddDespesaPage> createState() => _AddDespesaPageState();
@@ -18,12 +20,6 @@ class _AddDespesaPageState extends State<AddDespesaPage> {
   TipoTransacao _tipo = TipoTransacao.despesa;
   Categoria? _categoriaSelecionada;
 
-  final List<Categoria> _categorias = [
-    Categoria(id: '1', nome: 'Alimentação', tipo: TipoTransacao.despesa),
-    Categoria(id: '2', nome: 'Transporte', tipo: TipoTransacao.despesa),
-    Categoria(id: '3', nome: 'Salário', tipo: TipoTransacao.receita),
-  ];
-
   void _salvar() {
     if (!_formKey.currentState!.validate()) return;
 
@@ -36,11 +32,15 @@ class _AddDespesaPageState extends State<AddDespesaPage> {
       categoria: _categoriaSelecionada!,
     );
 
-    Navigator.pop(context, despesa);
+    widget.onSalvar(despesa);
   }
 
   @override
   Widget build(BuildContext context) {
+    final categoriasFiltradas = categoriasFixas
+        .where((c) => c.tipo == _tipo)
+        .toList();
+
     return Scaffold(
       appBar: AppBar(title: Text('Adicionar Despesa')),
       body: Padding(
@@ -96,25 +96,87 @@ class _AddDespesaPageState extends State<AddDespesaPage> {
               ),
               const SizedBox(height: 16),
 
-              DropdownButtonFormField<Categoria>(
-                initialValue: _categoriaSelecionada,
-                items: _categorias.where((c) => c.tipo == _tipo).map((
-                  categoria,
-                ) {
-                  return DropdownMenuItem(
-                    value: categoria,
-                    child: Text(categoria.nome),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() => _categoriaSelecionada = value);
-                },
-                decoration: InputDecoration(
-                  labelText: 'Categoria',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) =>
-                    value == null ? 'Selecione uma categoria' : null,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Categorias',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+
+                  SizedBox(
+                    height: 90,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: categoriasFiltradas.map((categoria) {
+                        final selecionado =
+                            _categoriaSelecionada?.id == categoria.id;
+
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              if (_categoriaSelecionada?.id == categoria.id) {
+                                _categoriaSelecionada = null; // Desseleciona
+                              } else {
+                                _categoriaSelecionada = categoria; // Seleciona
+                              }
+                            });
+                          },
+                          child: Container(
+                            width: 90,
+                            margin: const EdgeInsets.only(right: 12),
+                            decoration: BoxDecoration(
+                              color: selecionado
+                                  ? Colors.green.withOpacity(0.15)
+                                  : Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: selecionado
+                                    ? Colors.green
+                                    : Colors.grey.shade300,
+                                width: 2,
+                              ),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  categoria.icon,
+                                  size: 32,
+                                  color: selecionado
+                                      ? Colors.green
+                                      : Colors.grey,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  categoria.nome,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: selecionado
+                                        ? Colors.green
+                                        : Colors.grey.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+
+                  if (_categoriaSelecionada == null)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8),
+                      child: Text(
+                        'Selecione uma categoria',
+                        style: TextStyle(color: Colors.red, fontSize: 12),
+                      ),
+                    ),
+                ],
               ),
 
               SizedBox(height: 24),
