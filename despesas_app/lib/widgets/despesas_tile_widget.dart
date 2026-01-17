@@ -1,5 +1,6 @@
 import 'package:despesas_app/models/despesa.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class DespesasTileWidget extends StatelessWidget {
   final Despesa despesa;
@@ -8,6 +9,7 @@ class DespesasTileWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      dense: true,
       leading: CircleAvatar(
         backgroundColor: despesa.tipo == TipoTransacao.despesa
             ? Colors.red[100]
@@ -22,7 +24,9 @@ class DespesasTileWidget extends StatelessWidget {
         ),
       ),
       title: Text(despesa.descricao),
-      subtitle: Text(despesa.categoria.nome),
+      subtitle: Text(
+        '${despesa.categoria.nome}\n${DateFormat('dd/MM/yyyy').format(despesa.data)}',
+      ),
       trailing: Text(
         'R\$ ${despesa.valor.toStringAsFixed(2)}',
         style: TextStyle(
