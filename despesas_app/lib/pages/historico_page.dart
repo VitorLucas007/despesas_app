@@ -1,64 +1,65 @@
 import 'package:despesas_app/models/despesa.dart';
+import 'package:despesas_app/widgets/despesas_tile_widget.dart';
+import 'package:despesas_app/widgets/historico_filtro_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
-class HistoricoPage extends StatelessWidget {
+class HistoricoPage extends StatefulWidget {
   final List<Despesa> despesas;
   const HistoricoPage({super.key, required this.despesas});
 
   @override
+  State<HistoricoPage> createState() => _HistoricoPageState();
+}
+
+class _HistoricoPageState extends State<HistoricoPage> {
+  TipoTransacao? _filtroTipo;
+  DateTime _mesSelecionado = DateTime.now();
+
+  List<Despesa> get _despesasFiltradas {
+    return widget.despesas.where((d) {
+      final mesmoMes =
+          d.data.month == _mesSelecionado.month &&
+          d.data.year == _mesSelecionado.year;
+
+      final tipoOk = _filtroTipo == null || d.tipo == _filtroTipo;
+
+      return mesmoMes && tipoOk;
+    }).toList();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (despesas.isEmpty) {
-      return const Center(
-        child: Text(
-          'Nenhuma movimentação registrada',
-          style: TextStyle(fontSize: 16, color: Colors.grey),
-        ),
-      );
-    }
     return Scaffold(
       appBar: AppBar(
         title: Text('Historico de Movimentação'),
         centerTitle: true,
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: despesas.length,
-        separatorBuilder: (_, _) => SizedBox(height: 8),
-        itemBuilder: (context, index) {
-          final despesa = despesas[index];
-          final isReceita = despesa.tipo == TipoTransacao.receita;
-
-          return Card(
-            elevation: 1,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: isReceita
-                    ? Colors.green.withOpacity(0.15)
-                    : Colors.red.withOpacity(0.15),
-                child: Icon(
-                  despesa.categoria.icon,
-                  color: isReceita ? Colors.green : Colors.red,
-                ),
-              ),
-              title: Text(
-                despesa.descricao,
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              subtitle: Text(DateFormat('dd/MM/yyyy').format(despesa.data)),
-              trailing: Text(
-                '${isReceita ? '+' : '-'} R\$ ${despesa.valor.toStringAsFixed(2)}',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: isReceita ? Colors.green : Colors.red,
-                ),
-              ),
-            ),
-          );
-        },
+      body: Column(
+        children: [
+          HistoricoFiltroWidget(
+            mesSelecionado: _mesSelecionado,
+            filtroTipo: _filtroTipo,
+            onMesChanged: (mes) {
+              setState(() {
+                _mesSelecionado = mes;
+              });
+            },
+            onTipoChanged: (tipo) {
+              setState(() => _filtroTipo = tipo);
+            },
+          ),
+          Expanded(
+            child: _despesasFiltradas.isEmpty
+                ? Center(child: Text('Nenhuma movimentação...'))
+                : ListView.builder(
+                    itemCount: _despesasFiltradas.length,
+                    itemBuilder: (context, index) {
+                      final despesa = _despesasFiltradas[index];
+                      return DespesasTileWidget(despesa: despesa);
+                    },
+                  ),
+          ),
+        ],
       ),
     );
   }

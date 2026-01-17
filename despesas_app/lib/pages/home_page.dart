@@ -18,6 +18,12 @@ class HomePage extends StatelessWidget {
       body: Column(
         children: [
           ResumoCardWidget(entrada: resumo.entrada, saida: resumo.saida),
+          SizedBox(height: 12),
+          Text(
+            'Resumo Receitas e Despesas',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 12),
           Expanded(
             child: ListView.builder(
               itemCount: despesas.length,
