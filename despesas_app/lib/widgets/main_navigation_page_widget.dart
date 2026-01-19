@@ -45,20 +45,17 @@ class _MainNavigationPageWidgetState extends State<MainNavigationPageWidget> {
         onTap: (index) {
           setState(() => _currentIndex = index);
         },
-        items: [
-          const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'Histórico',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.add),
-            label: 'Cadastro',
-          ),
-        ],
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Colors.green,
         unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.history),
+            label: 'Histórico',
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Cadastro'),
+        ],
       ),
     );
   }

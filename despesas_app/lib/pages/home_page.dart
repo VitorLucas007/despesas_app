@@ -1,5 +1,6 @@
 import 'package:despesas_app/models/despesa.dart';
 import 'package:despesas_app/models/resumo_financeiro.dart';
+import 'package:despesas_app/pages/edit_despesa_page.dart';
 import 'package:despesas_app/services/despesas_service.dart';
 import 'package:despesas_app/widgets/despesas_tile_widget.dart';
 import 'package:despesas_app/widgets/resumo_card_widget.dart';
@@ -18,6 +19,7 @@ class _HomePageState extends State<HomePage> {
   List<Despesa> _despesas = [];
   ResumoFinanceiro _resumo = ResumoFinanceiro(entrada: 0, saida: 0);
   bool _isLoading = true;
+  String _termoBusca = '';
 
   @override
   void initState() {
@@ -36,7 +38,13 @@ class _HomePageState extends State<HomePage> {
     setState(() => _isLoading = true);
     
     try {
-      final despesas = await widget.despesasService.listarTodos();
+      List<Despesa> despesas;
+      if (_termoBusca.isNotEmpty) {
+        despesas = await widget.despesasService.buscarPorDescricao(_termoBusca);
+      } else {
+        despesas = await widget.despesasService.listarTodos();
+      }
+      
       final resumo = await widget.despesasService.calcularResumo();
       
       setState(() {
@@ -54,12 +62,116 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _abrirBusca() async {
+    final termo = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        final controller = TextEditingController(text: _termoBusca);
+        return AlertDialog(
+          title: const Text('Buscar Despesas'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              labelText: 'Digite a descrição',
+              hintText: 'Ex: Compras, Salário...',
+              border: OutlineInputBorder(),
+            ),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() => _termoBusca = '');
+                Navigator.of(context).pop('');
+              },
+              child: const Text('Limpar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(controller.text),
+              child: const Text('Buscar'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (termo != null) {
+      setState(() => _termoBusca = termo);
+      _carregarDados();
+    }
+  }
+
+  Future<void> _editarDespesa(String id) async {
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => EditDespesaPage(
+          despesasService: widget.despesasService,
+          despesaId: id,
+          onSalvar: _carregarDados,
+        ),
+      ),
+    );
+    if (result == true || mounted) {
+      _carregarDados();
+    }
+  }
+
+  Future<void> _deletarDespesa(String id) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar exclusão'),
+        content: const Text('Tem certeza que deseja excluir esta despesa?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        await widget.despesasService.deletar(id);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Despesa excluída com sucesso!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+        _carregarDados();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erro ao excluir: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Minhas Despesas'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: _abrirBusca,
+            tooltip: 'Buscar',
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _carregarDados,
@@ -92,8 +204,11 @@ class _HomePageState extends State<HomePage> {
                       : ListView.builder(
                           itemCount: _despesas.length,
                           itemBuilder: (context, index) {
+                            final despesa = _despesas[index];
                             return DespesasTileWidget(
-                              despesa: _despesas[index],
+                              despesa: despesa,
+                              onEditar: () => _editarDespesa(despesa.id),
+                              onDeletar: () => _deletarDespesa(despesa.id),
                             );
                           },
                         ),
