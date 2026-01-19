@@ -1,6 +1,5 @@
 import 'package:despesas_app/models/despesa.dart';
 import 'package:despesas_app/pages/add_despesa_page.dart';
-import 'package:despesas_app/pages/estatistica_page.dart';
 import 'package:despesas_app/pages/historico_page.dart';
 import 'package:despesas_app/pages/home_page.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +30,6 @@ class _MainNavigationPageWidgetState extends State<MainNavigationPageWidget> {
       HomePage(despesas: _despesas),
       HistoricoPage(despesas: _despesas),
       AddDespesaPage(onSalvar: _adicionarDespesa),
-      EstatisticaPage(despesas: _despesas),
     ];
 
     return Scaffold(
@@ -49,10 +47,6 @@ class _MainNavigationPageWidgetState extends State<MainNavigationPageWidget> {
             label: 'Histórico',
           ),
           BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Cadastro'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: 'Estatíticas',
-          ),
         ],
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Colors.green,
