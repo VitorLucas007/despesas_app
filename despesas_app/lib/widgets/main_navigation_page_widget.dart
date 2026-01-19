@@ -1,7 +1,7 @@
-import 'package:despesas_app/models/despesa.dart';
 import 'package:despesas_app/pages/add_despesa_page.dart';
 import 'package:despesas_app/pages/historico_page.dart';
 import 'package:despesas_app/pages/home_page.dart';
+import 'package:despesas_app/services/despesas_service.dart';
 import 'package:flutter/material.dart';
 
 class MainNavigationPageWidget extends StatefulWidget {
@@ -14,39 +14,47 @@ class MainNavigationPageWidget extends StatefulWidget {
 
 class _MainNavigationPageWidgetState extends State<MainNavigationPageWidget> {
   int _currentIndex = 0;
+  final DespesasService _despesasService = DespesasService();
 
-  final List<Despesa> _despesas = [];
-
-  void _adicionarDespesa(Despesa despesa) {
-    setState(() {
-      _despesas.add(despesa);
-      _currentIndex = 0; // volta pra home
-    });
+  /// Callback chamado quando uma despesa é salva
+  /// Isso força a atualização das páginas que mostram despesas
+  Future<void> _onDespesaSalva() async {
+    // Se estiver na home ou histórico, força o rebuild
+    if (_currentIndex == 0 || _currentIndex == 1) {
+      setState(() {});
+    }
+    // Volta para a home após salvar
+    setState(() => _currentIndex = 0);
   }
 
   @override
   Widget build(BuildContext context) {
     final pages = [
-      HomePage(despesas: _despesas),
-      HistoricoPage(despesas: _despesas),
-      AddDespesaPage(onSalvar: _adicionarDespesa),
+      HomePage(despesasService: _despesasService),
+      HistoricoPage(despesasService: _despesasService),
+      AddDespesaPage(
+        despesasService: _despesasService,
+        onSalvar: _onDespesaSalva,
+      ),
     ];
 
     return Scaffold(
       body: pages[_currentIndex],
-
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() => _currentIndex = index);
         },
         items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          const BottomNavigationBarItem(
             icon: Icon(Icons.history),
             label: 'Histórico',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Cadastro'),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.add),
+            label: 'Cadastro',
+          ),
         ],
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Colors.green,

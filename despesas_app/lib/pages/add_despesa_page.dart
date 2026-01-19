@@ -1,11 +1,18 @@
 import 'package:despesas_app/models/categoria.dart';
 import 'package:despesas_app/models/despesa.dart';
-import 'package:despesas_app/utils/categorias_fixas.dart';
+import 'package:despesas_app/services/categoria_service.dart';
+import 'package:despesas_app/services/despesas_service.dart';
 import 'package:flutter/material.dart';
 
 class AddDespesaPage extends StatefulWidget {
-  final Function(Despesa) onSalvar;
-  const AddDespesaPage({super.key, required this.onSalvar});
+  final DespesasService despesasService;
+  final Future<void> Function() onSalvar;
+  
+  const AddDespesaPage({
+    super.key,
+    required this.despesasService,
+    required this.onSalvar,
+  });
 
   @override
   State<AddDespesaPage> createState() => _AddDespesaPageState();
@@ -13,33 +20,100 @@ class AddDespesaPage extends StatefulWidget {
 
 class _AddDespesaPageState extends State<AddDespesaPage> {
   final _formKey = GlobalKey<FormState>();
+  final _categoriaService = CategoriaService();
 
   final _descricaoController = TextEditingController();
   final _valorController = TextEditingController();
 
   TipoTransacao _tipo = TipoTransacao.despesa;
   Categoria? _categoriaSelecionada;
+  List<Categoria> _categoriasDisponiveis = [];
+  bool _isLoading = false;
 
-  void _salvar() {
+  @override
+  void initState() {
+    super.initState();
+    _carregarCategorias();
+  }
+
+  Future<void> _carregarCategorias() async {
+    final categorias = await _categoriaService.listarPorTipo(_tipo.name);
+    setState(() {
+      _categoriasDisponiveis = categorias;
+      // Se a categoria selecionada não existe mais para o tipo atual, limpa
+      if (_categoriaSelecionada != null &&
+          !_categoriasDisponiveis.any(
+              (c) => c.id == _categoriaSelecionada!.id)) {
+        _categoriaSelecionada = null;
+      }
+    });
+  }
+
+  Future<void> _salvar() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_categoriaSelecionada == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor, selecione uma categoria'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
-    final despesa = Despesa(
-      id: DateTime.now().toString(),
-      descricao: _descricaoController.text,
-      valor: double.parse(_valorController.text),
-      data: DateTime.now(),
-      tipo: _tipo,
-      categoria: _categoriaSelecionada!,
-    );
+    setState(() => _isLoading = true);
 
-    widget.onSalvar(despesa);
+    try {
+      final despesa = Despesa(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        descricao: _descricaoController.text.trim(),
+        valor: double.parse(_valorController.text.replaceAll(',', '.')),
+        data: DateTime.now(),
+        tipo: _tipo,
+        categoria: _categoriaSelecionada!,
+      );
+
+      await widget.despesasService.criar(despesa);
+
+      // Limpa os campos após salvar
+      _descricaoController.clear();
+      _valorController.clear();
+      setState(() {
+        _categoriaSelecionada = null;
+        _isLoading = false;
+      });
+
+      // Notifica que foi salvo
+      await widget.onSalvar();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Despesa salva com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao salvar: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final categoriasFiltradas = categoriasFixas
-        .where((c) => c.tipo == _tipo)
-        .toList();
+    // Recarrega categorias quando o tipo muda
+    if (_categoriasDisponiveis.isEmpty ||
+        _categoriasDisponiveis.first.tipo != _tipo) {
+      _carregarCategorias();
+    }
 
     return Scaffold(
       appBar: AppBar(title: Text('Adicionar Despesa')),
@@ -87,7 +161,11 @@ class _AddDespesaPageState extends State<AddDespesaPage> {
                   ),
                 ],
                 onChanged: (value) {
-                  setState(() => _tipo = value!);
+                  setState(() {
+                    _tipo = value!;
+                    _categoriaSelecionada = null; // Reseta categoria ao mudar tipo
+                  });
+                  _carregarCategorias();
                 },
                 decoration: InputDecoration(
                   labelText: 'Tipo',
@@ -107,9 +185,13 @@ class _AddDespesaPageState extends State<AddDespesaPage> {
 
                   SizedBox(
                     height: 90,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: categoriasFiltradas.map((categoria) {
+                    child: _categoriasDisponiveis.isEmpty
+                        ? const Center(
+                            child: Text('Carregando categorias...'),
+                          )
+                        : ListView(
+                            scrollDirection: Axis.horizontal,
+                            children: _categoriasDisponiveis.map((categoria) {
                         final selecionado =
                             _categoriaSelecionada?.id == categoria.id;
 
@@ -184,8 +266,14 @@ class _AddDespesaPageState extends State<AddDespesaPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _salvar,
-                  child: Text('Salvar'),
+                  onPressed: _isLoading ? null : _salvar,
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Salvar'),
                 ),
               ),
             ],
