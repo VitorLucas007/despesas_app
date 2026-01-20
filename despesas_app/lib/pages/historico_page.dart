@@ -9,7 +9,13 @@ import 'package:despesas_app/widgets/historico_filtro_widget.dart';
 import 'package:despesas_app/widgets/resumo_card_widget.dart';
 import 'package:flutter/material.dart';
 
+/// Página de histórico de movimentações financeiras
+///
+/// Permite visualizar despesas/receitas filtradas por mês, tipo e categoria
+/// Inclui busca por descrição e exibe resumo financeiro do período selecionado
+/// Permite editar e deletar despesas
 class HistoricoPage extends StatefulWidget {
+  /// Serviço para operações com despesas no banco de dados
   final DespesasService despesasService;
   const HistoricoPage({super.key, required this.despesasService});
 
@@ -18,15 +24,31 @@ class HistoricoPage extends StatefulWidget {
 }
 
 class _HistoricoPageState extends State<HistoricoPage> {
+  /// Serviço para buscar categorias do banco
   final _categoriaService = CategoriaService();
 
+  /// Filtro por tipo de transação (null = todos, despesa ou receita)
   TipoTransacao? _filtroTipo;
+
+  /// Filtro por categoria específica (null = todas)
   Categoria? _filtroCategoria;
+
+  /// Mês e ano selecionados para filtrar as despesas
   DateTime _mesSelecionado = DateTime.now();
+
+  /// Lista de despesas filtradas a serem exibidas
   List<Despesa> _despesas = [];
+
+  /// Lista de todas as categorias (para o filtro de categoria)
   List<Categoria> _categorias = [];
+
+  /// Resumo financeiro calculado para o período selecionado
   ResumoFinanceiro? _resumoPeriodo;
+
+  /// Indica se os dados estão sendo carregados do banco
   bool _isLoading = true;
+
+  /// Termo de busca para filtrar despesas por descrição
   String _termoBusca = '';
 
   @override

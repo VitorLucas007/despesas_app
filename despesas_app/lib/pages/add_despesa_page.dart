@@ -4,8 +4,16 @@ import 'package:despesas_app/services/categoria_service.dart';
 import 'package:despesas_app/services/despesas_service.dart';
 import 'package:flutter/material.dart';
 
+/// Página para cadastrar novas despesas ou receitas
+/// 
+/// Permite preencher descrição, valor, tipo (despesa/receita) e selecionar categoria
+/// Valida os dados antes de salvar no banco de dados
 class AddDespesaPage extends StatefulWidget {
+  /// Serviço para operações com despesas no banco de dados
   final DespesasService despesasService;
+
+  /// Callback chamado após salvar uma despesa com sucesso
+  /// Usado para atualizar outras páginas (Home, Histórico)
   final Future<void> Function() onSalvar;
   
   const AddDespesaPage({
@@ -19,23 +27,39 @@ class AddDespesaPage extends StatefulWidget {
 }
 
 class _AddDespesaPageState extends State<AddDespesaPage> {
+  /// Chave do formulário para validação
   final _formKey = GlobalKey<FormState>();
+
+  /// Serviço para buscar categorias do banco
   final _categoriaService = CategoriaService();
 
+  /// Controladores dos campos de texto
   final _descricaoController = TextEditingController();
   final _valorController = TextEditingController();
 
+  /// Tipo de transação selecionado (despesa ou receita)
   TipoTransacao _tipo = TipoTransacao.despesa;
+
+  /// Categoria atualmente selecionada pelo usuário
   Categoria? _categoriaSelecionada;
+
+  /// Lista de categorias disponíveis filtradas por tipo
   List<Categoria> _categoriasDisponiveis = [];
+
+  /// Indica se está salvando a despesa no banco
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
+    // Carrega as categorias do tipo selecionado ao inicializar
     _carregarCategorias();
   }
 
+  /// Carrega as categorias do banco filtradas pelo tipo selecionado
+  /// 
+  /// Atualiza a lista de categorias disponíveis e limpa a seleção
+  /// se a categoria atual não for compatível com o novo tipo
   Future<void> _carregarCategorias() async {
     final categorias = await _categoriaService.listarPorTipo(_tipo.name);
     setState(() {
@@ -49,8 +73,15 @@ class _AddDespesaPageState extends State<AddDespesaPage> {
     });
   }
 
+  /// Salva a despesa/receita no banco de dados
+  /// 
+  /// Valida o formulário e verifica se uma categoria foi selecionada
+  /// Cria um novo ID baseado em timestamp e salva no banco
+  /// Limpa os campos e chama o callback onSalvar após sucesso
   Future<void> _salvar() async {
+    // Valida todos os campos do formulário
     if (!_formKey.currentState!.validate()) return;
+    // Verifica se uma categoria foi selecionada
     if (_categoriaSelecionada == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
