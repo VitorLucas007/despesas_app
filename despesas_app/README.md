@@ -1,10 +1,6 @@
 # 💰 Despesas App
 
-<<<<<<< HEAD
 Aplicativo desenvolvido em Flutter para controle financeiro pessoal, permitindo gerenciar despesas e receitas de forma simples e intuitiva.
-=======
-Aplicativo Flutter para controle financeiro pessoal, permitindo gerenciar despesas e receitas de forma simples e intuitiva.
->>>>>>> 44656a4a2a5998a911cf01746353968d53fc2f69
 
 ## 📱 Sobre o Aplicativo
 
@@ -214,4 +210,4 @@ Se você tiver dúvidas ou encontrar problemas, abra uma issue no repositório.
 
 ---
 
-**Desenvolvido com ❤️ usando Flutter**
+**Desenvolvido por Dev_Vitor_Lucas**
