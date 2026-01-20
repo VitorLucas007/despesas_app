@@ -1,6 +1,6 @@
 # 💰 Despesas App
 
-Aplicativo Flutter para controle financeiro pessoal, permitindo gerenciar despesas e receitas de forma simples e intuitiva.
+Aplicativo desenvolvido em Flutter para controle financeiro pessoal, permitindo gerenciar despesas e receitas de forma simples e intuitiva.
 
 ## 📱 Sobre o Aplicativo
 
