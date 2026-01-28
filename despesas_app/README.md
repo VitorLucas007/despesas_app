@@ -210,4 +210,4 @@ Se você tiver dúvidas ou encontrar problemas, abra uma issue no repositório.
 
 ---
 
-**Desenvolvido por Dev_Vitor_Lucas**
+**Desenvolvido por Vitor Lucas**
